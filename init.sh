@@ -22,3 +22,9 @@ python3.6 -m venv .venv
 
 cd || exit
 chown -R "$(id -u)":"$(id -g)" lzombie
+
+ln -s /home/zombielavka/lzombie/conf/supervisord/print-client.conf /etc/supervisor/conf.d/print-client.conf
+
+supervisorctl reread
+supervisorctl update
+supervisorctl status
