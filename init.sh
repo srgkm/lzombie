@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -e
 
 sudo -n true
 
@@ -27,4 +29,5 @@ ln -s /home/zombielavka/lzombie/conf/supervisord/print-client.conf /etc/supervis
 
 supervisorctl reread
 supervisorctl update
+supervisorctl restart
 supervisorctl status
