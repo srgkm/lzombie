@@ -2,10 +2,17 @@
 
 import asyncio
 import argparse
+import logging
 import sys
 import yaml
 
 from stall.daemon.print import PrintDaemon
+
+logging.basicConfig(
+    level='DEBUG',
+    format="%(asctime)s,%(msecs)d %(levelname)s: %(message)s",
+    datefmt="%H:%M:%S",
+)
 
 
 async def main():

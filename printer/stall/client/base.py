@@ -43,7 +43,7 @@ class Client:
                 return await res.json()
 
         if not isinstance(json, (list, dict, tuple)):
-            raise RuntimeError('json function attribute required')
+            raise ValueError('json function attribute required')
 
         async with self.session.post(url, **self.use_auth(), json=json) as res:
             return await res.json()
