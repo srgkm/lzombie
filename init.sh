@@ -11,18 +11,21 @@ add-apt-repository -y ppa:deadsnakes/ppa
 apt-get update
 apt-get install -y python3.6 python3.6-venv
 
-cd || exit
+cd /home/zombielavka
+
+rm /home/zombielavka/lzombie
 
 git clone https://github.com/srgkm/lzombie.git
 
-cd lzombie || exit
+cd lzombie
 
 python3.6 -m venv .venv
 
 .venv/bin/pip install -U pip
 .venv/bin/pip install -r requirements.txt
 
-cd || exit
+cd /home/zombielavka
+
 chown -R "$(id -u)":"$(id -g)" lzombie
 
 ln -sf /home/zombielavka/lzombie/config/supervisord/print-client.conf /etc/supervisor/conf.d/print-client.conf
