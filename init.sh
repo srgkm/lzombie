@@ -13,7 +13,7 @@ apt-get install -y python3.6 python3.6-venv
 
 cd /home/zombielavka
 
-rm /home/zombielavka/lzombie
+rm /home/zombielavka/lzombie || true
 
 git clone https://github.com/srgkm/lzombie.git
 
