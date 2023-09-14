@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import base64
+import random
 import subprocess
 
 from stall.client.ev import EvClient
@@ -112,6 +113,8 @@ class PrintDaemon:
             tasks = await self.pc.task_list()
 
             if tasks['code'] != 'OK':
+                if tasks['code'] == 'ER_ACCESS':
+                    await asyncio.sleep(random.randint(5, 15))
                 if tasks['code'] == 'ROUTE_NOT_FOUND':
                     log.error('Не найден роут на printer-client')
                     break
