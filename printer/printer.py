@@ -34,6 +34,9 @@ async def main():
 
     cfg = cfg['client']
 
+    if not cfg['token']:
+        raise ValueError('Invalid config. `token` is required')
+
     daemon = PrintDaemon(
         event_url=cfg['event_url'],
         print_client_url=cfg['url'],
