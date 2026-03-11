@@ -1,16 +1,17 @@
+from __future__ import annotations
+
 import typing
-import yarl
+
 import aiohttp
+import yarl
 
 
 class Client:
-    auth: typing.Optional[dict]
+    auth: dict | None
     base_url: yarl.URL
     _session = None
 
-    def __init__(self, *,
-                 base_url: str,
-                 auth: typing.Optional[dict] = None):
+    def __init__(self, *, base_url: str, auth: dict | None = None):
         self.auth = auth
         self.base_url = yarl.URL(base_url)
 
@@ -29,11 +30,19 @@ class Client:
     @property
     def session(self):
         if not self._session:
-            self._session = aiohttp.ClientSession()
+            self._session = aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(
+                    total=60,
+                    sock_connect=10,
+                    sock_read=35,
+                ),
+            )
         return self._session
 
     async def close(self):
-        await self.session.close()
+        if self._session:
+            await self._session.close()
+            self._session = None
 
     async def request(self, method, route, json=typing.Any):
         url = self.url_for(route)

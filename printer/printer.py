@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import asyncio
 import argparse
+import asyncio
 import logging
 import sys
+
 import yaml
 
 from stall.daemon.print import PrintDaemon
@@ -17,11 +18,7 @@ logging.basicConfig(
 
 async def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--config',
-        type=str,
-        help='Конфигурация клиента'
-    )
+    parser.add_argument('--config', type=str, help='Конфигурация клиента')
 
     args = parser.parse_args()
 
@@ -44,7 +41,10 @@ async def main():
         store_id=cfg['store_id'],
     )
 
-    await daemon.run()
+    try:
+        await daemon.run()
+    finally:
+        await daemon.stop()
 
 
 if __name__ == '__main__':

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
-import logging
 import base64
+import logging
 import random
 import subprocess
 
@@ -11,14 +13,15 @@ log = logging.getLogger(__name__)
 
 
 class PrintDaemon:
-    def __init__(self,
-                 *,
-                 event_url: str,
-                 event_timeout: float = 25,
-                 print_client_url: str,
-                 print_client_token: str,
-                 store_id: str):
-
+    def __init__(
+        self,
+        *,
+        event_url: str,
+        event_timeout: float = 25,
+        print_client_url: str,
+        print_client_token: str,
+        store_id: str,
+    ):
         self.event_url = event_url
         self.event_timeout = event_timeout
         self.print_client_url = print_client_url
@@ -26,16 +29,16 @@ class PrintDaemon:
         self.is_run = False
         self.store_id = store_id
 
-        self.ev = EvClient(base_url=self.event_url,
-                           timeout=self.event_timeout)
-        self.pc = PrintClient(base_url=self.print_client_url,
-                              auth=self.print_client_token)
+        self.ev = EvClient(base_url=self.event_url, timeout=self.event_timeout)
+        self.pc = PrintClient(
+            base_url=self.print_client_url, auth=self.print_client_token
+        )
         self.atexit = None
 
     # pylint: disable=unused-argument
     async def print(self, target, file_type, document):
         """
-            Функция выполняет собственно печать на принтере
+        Функция выполняет собственно печать на принтере
         """
         if isinstance(document, str):
             document = document.encode()
@@ -76,22 +79,39 @@ class PrintDaemon:
         self.atexit = asyncio.get_event_loop().create_future()
 
         while self.is_run:
-            events = await self.ev.take([['print', 'store', self.store_id]])
+            try:
+                events = await self.ev.take(
+                    [['print', 'store', self.store_id]]
+                )
 
-            log.info('Получаем события: %s', events)
+                log.info('Получаем события: %s', events)
 
-            if events['code'] == 'INIT':
-                if atrun:
-                    atrun.set_result(True)
+                if events['code'] == 'INIT':
+                    if atrun:
+                        atrun.set_result(True)
 
-            if events['events']:
-                log.debug('Получены события о печати %s', events['events'])
-                await self._check_tasks()
-                continue
+                if events['events']:
+                    log.debug('Получены события о печати %s', events['events'])
+                    await self._check_tasks()
+                    continue
 
-            if events['code'] in ('INIT', 'MAYBE_DATA_LOST'):
-                await self._check_tasks()
-                continue
+                if events['code'] in ('INIT', 'MAYBE_DATA_LOST'):
+                    await self._check_tasks()
+                    continue
+
+            except TimeoutError:
+                log.warning('Таймаут long-polling, повтор через 5 сек')
+                await asyncio.sleep(5)
+            except OSError as exc:
+                log.warning(
+                    'Сетевая ошибка в цикле: %s, повтор через 5 сек', exc
+                )
+                await asyncio.sleep(5)
+            except Exception as exc:
+                log.exception(
+                    'Неожиданная ошибка в цикле: %s, повтор через 5 сек', exc
+                )
+                await asyncio.sleep(5)
 
         if self.atexit:
             self.atexit.set_result(True)
@@ -102,6 +122,8 @@ class PrintDaemon:
     async def stop(self):
         log.debug('Останавливаем демон')
         self.is_run = False
+        await self.ev.close()
+        await self.pc.close()
         if self.atexit:
             log.debug('Ожидаем завершения демона')
             await self.atexit
@@ -124,7 +146,6 @@ class PrintDaemon:
                 break
 
             for task_id in tasks['tasks']:
-
                 raw = await self.pc.task_raw(task_id)
 
                 if raw['code'] != 'OK':
